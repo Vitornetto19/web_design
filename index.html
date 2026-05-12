@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Space Orbit — Foguete de brinquedo premium, escala 1:110, design aeroespacial real." />
+  <title>Space Orbit — Foguete Premium 🚀</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&display=swap" rel="stylesheet" />
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+  /* ════════════════════════════════════
+     DESIGN TOKENS — extraídos de design_system.html
+  ════════════════════════════════════ */
+  :root {
+    --void:   #030712;
+    --deep:   #0d1b35;
+    --navy:   #0f2040;
+    --blue:   #1d6fde;
+    --sky:    #4fc3f7;
+    --cyan:   #00e5ff;
+    --nebula: #6e3fa3;
+    --red:    #e53935;
+    --gold:   #ffd740;
+    --green:  #3caf65;
+    --white:  #f0f4ff;
+    --muted:  rgba(232,240,254,.5);
+    --border: rgba(79,195,247,.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--void);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── Star field ── */
+  .star-field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .star {
+    position: absolute; background: #fff; border-radius: 50%;
+    animation: twinkle var(--dur,3s) var(--delay,0s) infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:.12; transform:scale(1); }
+    50%      { opacity:1;   transform:scale(1.6); }
+  }
+
+  /* ── Gradient text ── */
+  .gt-space {
+    background: linear-gradient(135deg, var(--white) 0%, var(--sky) 50%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    border: none; font-family: inherit; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; transition: all .3s ease; text-decoration: none;
+  }
+  .btn-launch {
+    background: linear-gradient(135deg, #e53935, #ff6f00);
+    color: #fff; padding: 16px 36px; border-radius: 100px;
+    font-size: 13px; font-weight: 800; letter-spacing: 2px;
+    position: relative; overflow: hidden;
+  }
+  .btn-launch:hover { box-shadow: 0 0 40px rgba(229,57,53,.6), 0 0 80px rgba(255,111,0,.3); transform: scale(1.04); }
+  .btn-outline {
+    background: transparent; color: var(--sky); border: 2px solid var(--sky);
+    padding: 14px 28px; border-radius: 8px; font-size: 12px;
+  }
+  .btn-outline:hover { background: rgba(79,195,247,.1); box-shadow: 0 0 20px rgba(79,195,247,.3); }
+  .beam { position: relative; overflow: hidden; }
+  .beam::before {
+    content: ''; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+    transition: left .55s;
+  }
+  .beam:hover::before { left: 100%; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 5px 13px;
+    border-radius: 100px; font-size: 9px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .badge-blue   { background:rgba(79,195,247,.12);  color:var(--sky);  border:1px solid rgba(79,195,247,.3);  }
+  .badge-purple { background:rgba(110,63,163,.18);  color:#c5a8f5;     border:1px solid rgba(110,63,163,.4);  }
+  .badge-gold   { background:rgba(255,215,64,.08);  color:var(--gold); border:1px solid rgba(255,215,64,.3);  }
+  .badge-green  { background:rgba(60,175,101,.12);  color:#7ed49e;     border:1px solid rgba(60,175,101,.3);  }
+
+  /* ════════════════════════════════════
+     SCROLL PROGRESS
+  ════════════════════════════════════ */
+  .scroll-bar {
+    position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
+    width: 0%; background: linear-gradient(90deg, var(--blue), var(--cyan));
+    box-shadow: 0 0 8px rgba(0,229,255,.5); transition: width .08s linear;
+  }
+
+  /* ════════════════════════════════════
+     HERO SECTION
+  ════════════════════════════════════ */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(110,63,163,.14) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(29,111,222,.10) 0%, transparent 40%),
+      var(--void);
+    overflow: hidden;
+  }
+
+  /* Grid overlay */
+  .hero::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(to right, rgba(79,195,247,.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(79,195,247,.03) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+
+  /* Ambient blobs */
+  .blob { position: absolute; border-radius: 50%; pointer-events: none; z-index: 1; }
+  .blob-a {
+    top:8%; right:4%; width:400px; height:400px;
+    background: radial-gradient(circle, rgba(29,111,222,.18) 0%, transparent 70%);
+    animation: blobDrift 9s ease-in-out infinite;
+  }
+  .blob-b {
+    bottom:8%; left:3%; width:280px; height:280px;
+    background: radial-gradient(circle, rgba(110,63,163,.15) 0%, transparent 70%);
+    animation: blobDrift 11s ease-in-out infinite reverse;
+  }
+  .blob-c {
+    top:35%; left:38%; width:160px; height:160px;
+    background: radial-gradient(circle, rgba(0,229,255,.06) 0%, transparent 70%);
+    animation: blobDrift 7s ease-in-out infinite 1.5s;
+  }
+  @keyframes blobDrift {
+    0%,100% { transform:translate(0,0); }
+    33%     { transform:translate(18px,-26px); }
+    66%     { transform:translate(-14px,18px); }
+  }
+
+  /* Inner grid layout */
+  .hero-inner {
+    position: relative; z-index: 5;
+    width: 100%; max-width: 1240px; margin: 0 auto; padding: 100px 40px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+    align-items: center; min-height: 100vh;
+  }
+
+  /* ── Text column ── */
+  .hero-text { display: flex; flex-direction: column; }
+  .hero-badge {
+    margin-bottom: 28px;
+    opacity: 0; transform: translateY(12px); filter: blur(10px);
+    transition: opacity .7s ease .05s, transform .7s ease .05s, filter .7s ease .05s;
+  }
+
+  .hero-h1 {
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    font-weight: 900; line-height: .85; letter-spacing: -.05em; margin-bottom: 16px;
+  }
+  .hero-sub {
+    font-size: clamp(.82rem, 2vw, 1rem); font-weight: 300;
+    letter-spacing: .45em; color: var(--muted); text-transform: uppercase; margin-bottom: 36px;
+  }
+  .hero-desc {
+    font-size: 17px; line-height: 1.75; color: var(--muted);
+    max-width: 440px; margin-bottom: 48px;
+    opacity: 0; transform: translateY(18px); filter: blur(12px);
+    transition: opacity .8s ease .7s, transform .8s ease .7s, filter .9s ease .7s;
+  }
+  .hero-cta {
+    display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 36px;
+    opacity: 0; transform: translateY(18px); filter: blur(10px);
+    transition: opacity .8s ease .9s, transform .8s ease .9s, filter .9s ease .9s;
+  }
+  .hero-feats {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(18px); filter: blur(8px);
+    transition: opacity .8s ease 1.1s, transform .8s ease 1.1s, filter .9s ease 1.1s;
+  }
+  .in { opacity: 1 !important; transform: translateY(0) !important; filter: blur(0) !important; }
+
+  /* Text reveal */
+  .tr-wrap { overflow: hidden; display: inline-block; vertical-align: bottom; }
+  .tr-inner {
+    display: block; transform: translateY(110%); opacity: 0; filter: blur(16px);
+    transition: transform 1.2s cubic-bezier(.16,1,.3,1), opacity 1.2s ease, filter 1.1s ease;
+  }
+  .tr-inner.d2 { transition-delay: .2s; }
+  .tr-inner.d3 { transition-delay: .3s; }
+  .tr-inner.d5 { transition-delay: .5s; }
+  .reveal-active .tr-inner { transform: translateY(0); opacity: 1; filter: blur(0); }
+
+  /* ── Visual column ── */
+  .hero-visual { display: flex; align-items: center; justify-content: center; position: relative; }
+
+  /* Telemetry panel */
+  .telemetry {
+    position: absolute; top: 0; right: -16px;
+    display: flex; flex-direction: column; gap: 8px;
+    opacity: 0; transform: translateX(14px); filter: blur(8px);
+    transition: opacity .6s ease 1.5s, transform .6s ease 1.5s, filter .7s ease 1.5s;
+  }
+  .trow {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 9px; font-family: monospace;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+  }
+  .tdot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    animation: ledPulse 2s ease-in-out infinite;
+  }
+  .tdot-g { background:var(--green); box-shadow:0 0 6px var(--green); }
+  .tdot-c { background:var(--cyan);  box-shadow:0 0 6px var(--cyan);  animation-delay:.4s; }
+  .tdot-o { background:var(--gold);  box-shadow:0 0 6px var(--gold);  animation-delay:.8s; }
+  @keyframes ledPulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  /* ── Rocket scene ── */
+  .rocket-scene {
+    position: relative; width: 440px; height: 440px;
+    will-change: transform; cursor: pointer;
+  }
+
+  /* Orbit ring */
+  .orbit-ring {
+    position: absolute; inset: -24px;
+    border: 1px dashed rgba(79,195,247,.2); border-radius: 50%;
+    animation: orbitSpin 22s linear infinite;
+  }
+  .orbit-dot {
+    position: absolute; width: 8px; height: 8px; background: var(--cyan);
+    border-radius: 50%; top: -4px; left: calc(50% - 4px);
+    box-shadow: 0 0 10px var(--cyan), 0 0 24px rgba(0,229,255,.4);
+  }
+  @keyframes orbitSpin { to { transform: rotate(360deg); } }
+
+  /* Rocket image */
+  .rocket-img {
+    width: 100%; height: 100%; object-fit: contain;
+    position: relative; z-index: 3;
+    animation: rocketFloat 4.5s ease-in-out infinite;
+    filter:
+      drop-shadow(0 0 30px rgba(79,195,247,.55))
+      drop-shadow(0 0 70px rgba(29,111,222,.3));
+    user-select: none; -webkit-user-drag: none;
+  }
+  @keyframes rocketFloat {
+    0%,100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-18px) rotate(-3deg); }
+  }
+
+  /* Glow disc */
+  .rocket-glow {
+    position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0,229,255,.15) 0%, rgba(29,111,222,.06) 50%, transparent 70%);
+    border-radius: 50%; z-index: 1; animation: glowPulse 2.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes glowPulse {
+    0%,100% { transform:translateX(-50%) scale(1);   box-shadow:0 0 20px rgba(0,229,255,.3); }
+    50%      { transform:translateX(-50%) scale(1.1); box-shadow:0 0 50px rgba(0,229,255,.7); }
+  }
+
+  /* Thruster halo disc */
+  .thruster-halo {
+    position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 24px;
+    background: radial-gradient(ellipse, rgba(0,229,255,.7) 0%, transparent 70%);
+    filter: blur(6px); animation: glowPulse 2s ease-in-out infinite;
+    z-index: 4; pointer-events: none;
+  }
+
+  /* ── Flame stack ── */
+  .flame-stack {
+    position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    z-index: 2; pointer-events: none;
+    will-change: transform, opacity; transform-origin: top center;
+  }
+  .flame { border-radius: 0 0 60% 60% / 0 0 80% 80%; transform-origin: top center; }
+  .fl-outer {
+    width: 90px; height: 72px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.65) 0%, rgba(29,111,222,.35) 40%, transparent 75%);
+    filter: blur(10px);
+    animation: flicker .28s ease-in-out infinite alternate;
+  }
+  .fl-mid {
+    width: 54px; height: 58px;
+    background: radial-gradient(ellipse at 50% 0%, #fff 0%, rgba(0,229,255,.9) 22%, rgba(255,111,0,.45) 65%, transparent 85%);
+    filter: blur(5px); margin-top: -44px;
+    animation: flicker .2s ease-in-out infinite alternate-reverse;
+  }
+  .fl-core {
+    width: 22px; height: 38px;
+    background: radial-gradient(ellipse at 50% 0%, #fff 0%, rgba(0,229,255,1) 45%, transparent 80%);
+    filter: blur(2px); margin-top: -30px;
+    animation: flicker .15s ease-in-out infinite alternate;
+  }
+  @keyframes flicker {
+    0%   { transform:scaleX(1)   scaleY(1);    opacity:.88; }
+    50%  { transform:scaleX(1.1) scaleY(1.07); opacity:1;   }
+    100% { transform:scaleX(.9)  scaleY(.93);  opacity:.92; }
+  }
+
+  /* Particle trail */
+  .trail-container {
+    position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%);
+    width: 2px; height: 2px; z-index: 0; pointer-events: none; overflow: visible;
+  }
+  .particle {
+    position: absolute; border-radius: 50%;
+    animation: trailFade var(--d,1s) var(--dl,0s) ease-out infinite;
+  }
+  @keyframes trailFade {
+    0%   { opacity:.75; transform:translateY(0) scale(1); }
+    100% { opacity:0;   transform:translateY(80px) scale(.05); }
+  }
+
+  /* ── Scroll hint ── */
+  .scroll-hint {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    z-index: 10; pointer-events: none;
+  }
+  .sh-label { font-size: 9px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+  .sh-arrow {
+    width: 20px; height: 20px;
+    border-right: 2px solid rgba(79,195,247,.6);
+    border-bottom: 2px solid rgba(79,195,247,.6);
+    transform: rotate(45deg);
+  }
+
+  /* ════════════════════════════════════
+     MARQUEE
+  ════════════════════════════════════ */
+  .marquee-strip {
+    position: relative; z-index: 6;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden; padding: 14px 0; background: rgba(13,27,53,.45);
+  }
+  .marquee-wrap { display: flex; overflow: hidden; user-select: none; }
+  .marquee-track { flex-shrink: 0; display: flex; min-width: 100%; animation: marquee 30s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-100%); } }
+  .mi { font-size:10px; font-family:monospace; letter-spacing:4px; text-transform:uppercase; color:var(--muted); padding:0 36px; white-space:nowrap; }
+  .ms { color:var(--sky); padding:0 12px; }
+
+  /* ════════════════════════════════════
+     TEASER SECTION
+  ════════════════════════════════════ */
+  .teaser {
+    position: relative; z-index: 6;
+    padding: 120px 40px; text-align: center;
+    background: linear-gradient(to bottom,
+      #040000 0%,
+      #0e0502 5%,
+      #1c0d07 11%,
+      #1e0e22 19%,
+      #130b30 27%,
+      #0e1040 40%,
+      #0d1638 57%,
+      #0d1b35 76%,
+      #0b1328 100%
+    );
+  }
+  .teaser::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, transparent 0%, rgba(160,55,10,.45) 20%, rgba(215,90,28,.7) 50%, rgba(160,55,10,.45) 80%, transparent 100%);
+    pointer-events: none; z-index: 1;
+  }
+  .teaser::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 90px;
+    background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(100,28,6,.28) 0%, transparent 100%);
+    pointer-events: none; z-index: 1;
+  }
+  .teaser-inner { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; }
+  .stat-grid { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; margin-top: 48px; }
+  .stat-num { font-size: 2.8rem; font-weight: 900; display: block; line-height: 1; }
+  .stat-label { font-size: 10px; font-family: monospace; color: var(--muted); letter-spacing: 2.5px; display: block; margin-top: 4px; }
+
+  /* ════════════════════════════════════
+     FOOTER
+  ════════════════════════════════════ */
+  footer {
+    position: relative; z-index: 6;
+    background: rgba(3,7,18,.98); border-top: 1px solid var(--border);
+    padding: 60px 40px 40px; text-align: center;
+  }
+  .orbit-ring-sm {
+    position: relative; width: 100px; height: 100px; margin: 0 auto 28px;
+  }
+  .orbit-ring-sm .orbit-ring { inset: 0; }
+
+  /* ════════════════════════════════════
+     RESPONSIVE
+  ════════════════════════════════════ */
+  @media (max-width: 1024px) {
+    .hero-inner {
+      grid-template-columns: 1fr; text-align: center;
+      padding-top: 120px; gap: 40px; min-height: auto; padding-bottom: 80px;
+    }
+    .hero-text { align-items: center; }
+    .hero-desc { max-width: 100%; }
+    .hero-cta { justify-content: center; }
+    .hero-feats { justify-content: center; }
+    .hero-visual { order: -1; }
+    .rocket-scene { width: 310px; height: 310px; }
+    .telemetry {
+      position: static; opacity: 1 !important; transform: none !important;
+      flex-direction: row; justify-content: center; margin-top: 12px; flex-wrap: wrap;
+    }
+    .blob-a { width: 220px; height: 220px; }
+    .blob-b { width: 160px; height: 160px; }
+  }
+  @media (max-width: 640px) {
+    .hero-inner { padding: 90px 20px 60px; }
+    .rocket-scene { width: 230px; height: 230px; }
+    .hero-cta { flex-direction: column; align-items: stretch; }
+    .btn-launch, .btn-outline { justify-content: center; width: 100%; }
+    .stat-grid { gap: 28px; }
+    .teaser { padding: 80px 20px; }
+  }
+
+  /* ════════════════════════════════════
+     DESERT STARS SECTION
+  ════════════════════════════════════ */
+  .desert-stars {
+    position: relative; z-index: 6;
+    min-height: 100vh;
+    background: linear-gradient(
+      to bottom,
+      #d6c49a 0%,
+      #b09060 6%,
+      #7a6030 14%,
+      #3a3050 28%,
+      #1a1830 45%,
+      #0e0c20 65%,
+      #080714 100%
+    );
+    overflow: hidden;
+    display: flex; align-items: center;
+  }
+
+  /* Subtle grain texture overlay */
+  .desert-stars::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    opacity: .5;
+  }
+
+  /* Warm horizon glow */
+  .desert-stars::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 35%;
+    pointer-events: none; z-index: 1;
+    background: radial-gradient(ellipse at 50% 0%, rgba(210,170,100,.18) 0%, transparent 70%);
+  }
+
+  .ds-stars-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+
+  .ds-inner {
+    position: relative; z-index: 5;
+    width: 100%; max-width: 1240px; margin: 0 auto; padding: 120px 60px;
+    display: grid; grid-template-columns: 320px 1fr; gap: 60px;
+    align-items: center;
+  }
+
+  /* ── Text column ── */
+  .ds-text { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+
+  .ds-ornament {
+    font-size: 10px; font-family: monospace;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: rgba(200,169,110,.55); margin-bottom: 32px;
+  }
+
+  .ds-divider {
+    width: 56px; height: 1px; margin: 28px 0;
+    background: linear-gradient(90deg, #c8a96e, transparent);
+  }
+  .ds-divider-sm { width: 32px; }
+
+  .ds-quote {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic; font-weight: 300;
+    font-size: clamp(2rem, 3.8vw, 3.4rem);
+    color: #c8a96e; line-height: 1.55;
+    letter-spacing: .02em;
+  }
+
+  .ds-sub {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic; font-weight: 300;
+    font-size: clamp(.95rem, 1.6vw, 1.2rem);
+    color: rgba(200,169,110,.6); line-height: 1.8;
+    margin-top: 16px; max-width: 380px;
+  }
+
+  .ds-badge {
+    margin-top: 36px;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 18px; border-radius: 100px;
+    border: 1px solid rgba(200,169,110,.3);
+    background: rgba(200,169,110,.07);
+    font-size: 9px; font-family: monospace;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(200,169,110,.7);
+  }
+
+  /* ── Rocket column ── */
+  .ds-rocket { position: relative; display: flex; align-items: center; justify-content: center; }
+
+  .ds-rocket-wrap {
+    position: relative; width: 380px; height: 480px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .ds-orbit-ring {
+    position: absolute; inset: -32px;
+    border: 1px solid rgba(200,169,110,.15); border-radius: 50%;
+    animation: orbitSpin 28s linear infinite;
+  }
+  .ds-orbit-dot {
+    position: absolute; width: 6px; height: 6px;
+    background: #c8a96e; border-radius: 50%;
+    top: -3px; left: calc(50% - 3px);
+    box-shadow: 0 0 8px #c8a96e, 0 0 20px rgba(200,169,110,.5);
+  }
+
+  .ds-rocket-img {
+    width: 80%; max-width: 320px;
+    object-fit: contain; position: relative; z-index: 3;
+    animation: rocketFloat 5s ease-in-out infinite;
+    filter:
+      drop-shadow(0 0 36px rgba(200,169,110,.45))
+      drop-shadow(0 0 80px rgba(180,140,70,.2))
+      drop-shadow(0 30px 60px rgba(0,0,0,.6));
+    user-select: none; -webkit-user-drag: none;
+  }
+
+  /* ── Mars — realistic detailed sphere ── */
+  .ds-mars {
+    position: absolute;
+    z-index: 4;
+    right: 4%; top: 50%;
+    transform: translateY(-50%);
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    pointer-events: none;
+
+    background:
+      /* Sun glint — upper left */
+      radial-gradient(circle at 27% 23%, rgba(255,225,170,.52) 0%, transparent 24%),
+      /* Syrtis Major — dark triangle upper-center-right */
+      radial-gradient(ellipse 24% 32% at 60% 36%, rgba(38,8,2,.7)  0%, transparent 100%),
+      /* Valles Marineris — long equatorial canyon belt */
+      radial-gradient(ellipse 75% 10% at 50% 57%, rgba(33,4,0,.68) 0%, transparent 100%),
+      /* Arabia Terra — lighter central plateau */
+      radial-gradient(ellipse 34% 26% at 43% 45%, rgba(225,135,65,.22) 0%, transparent 100%),
+      /* Hellas Basin — large dark impact oval lower-right */
+      radial-gradient(ellipse 25% 21% at 68% 73%, rgba(26,3,0,.58) 0%, transparent 100%),
+      /* Olympus Mons area — slightly brighter upper-left */
+      radial-gradient(circle at 30% 43%, rgba(245,160,90,.22) 0%, transparent 15%),
+      /* Argyre Basin — dark lower-center-left */
+      radial-gradient(ellipse 15% 13% at 37% 73%, rgba(30,5,0,.48) 0%, transparent 100%),
+      /* Tharsis bulge — broad lighter region */
+      radial-gradient(ellipse 30% 36% at 31% 50%, rgba(235,148,78,.16) 0%, transparent 100%),
+      /* Terminator darkening — night side right */
+      radial-gradient(circle at 74% 60%, rgba(0,0,0,.58) 0%, transparent 44%),
+      /* Base sphere */
+      radial-gradient(circle at 40% 37%,
+        #f57832 0%,
+        #de521a 26%,
+        #ba390a 48%,
+        #8e2200 68%,
+        #581200 84%,
+        #2e0800 100%
+      );
+
+    box-shadow:
+      inset 18px 14px 44px rgba(255,205,130,.07),
+      inset -46px -34px 88px rgba(0,0,0,.88),
+      0 0 44px rgba(215,92,28,.38),
+      0 0 110px rgba(185,62,14,.16);
+
+    animation: marsFloat 16s ease-in-out infinite;
+  }
+
+  /* Atmospheric rim */
+  .ds-mars::before {
+    content: ''; position: absolute; inset: -9px;
+    border-radius: 50%; background: transparent;
+    box-shadow:
+      0 0 32px 12px rgba(215,95,30,.22),
+      0 0 80px 24px rgba(185,62,14,.10);
+    pointer-events: none;
+  }
+
+  /* North polar ice cap + southern dark band */
+  .ds-mars::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: 50%; pointer-events: none;
+    background:
+      radial-gradient(ellipse 58% 14% at 50% 3%,  rgba(255,245,230,.28) 0%, transparent 100%),
+      radial-gradient(ellipse 82% 28% at 50% 84%, rgba(16,2,0,.32)      0%, transparent 100%);
+  }
+
+  @keyframes marsFloat {
+    0%,100% { transform: translateY(-50%); }
+    50%      { transform: translateY(calc(-50% - 7px)); }
+  }
+
+  /* Star dot in bottom area */
+  .ds-star-accent {
+    position: absolute; width: 3px; height: 3px;
+    background: #fff; border-radius: 50%;
+    box-shadow: 0 0 6px rgba(255,255,255,.8);
+    animation: twinkle 2.5s ease-in-out infinite;
+  }
+
+  /* Floating specs tags */
+  .ds-spec-tag {
+    position: absolute; z-index: 6;
+    background: rgba(10,9,20,.7); backdrop-filter: blur(8px);
+    border: 1px solid rgba(200,169,110,.25); border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 9px; font-family: monospace; letter-spacing: 1.5px;
+    text-transform: uppercase; color: rgba(200,169,110,.8);
+  }
+  .ds-spec-tag strong { display: block; font-size: 16px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 400; color: #c8a96e; letter-spacing: 0; line-height: 1.2; margin-bottom: 2px; }
+  .dst-1 { top: 12%; left: -40px; }
+  .dst-2 { bottom: 22%; right: -40px; }
+
+  @media (max-width: 1100px) {
+    .ds-inner { grid-template-columns: 1fr; gap: 40px; padding: 100px 40px; }
+    .ds-text { align-items: center; text-align: center; }
+    .ds-divider { margin: 28px auto; background: linear-gradient(90deg, transparent, #c8a96e, transparent); }
+    .ds-rocket { order: -1; }
+    .ds-rocket-wrap { width: 300px; height: 380px; }
+    .ds-mars { width: 160px; height: 160px; right: 3%; top: 18%; transform: none; }
+    .dst-1 { left: 10px; }
+    .dst-2 { right: 10px; }
+  }
+  @media (max-width: 640px) {
+    .ds-inner { padding: 80px 20px; }
+    .ds-rocket-wrap { width: 240px; height: 300px; }
+    .ds-mars { width: 100px; height: 100px; right: 2%; top: 12%; }
+    .dst-1, .dst-2 { display: none; }
+  }
+
+  /* ════════════════════════════════════
+     MARS SURFACE — Terceira Dobra
+  ════════════════════════════════════ */
+  .mars-surface {
+    position: relative; z-index: 6;
+    min-height: 100vh; overflow: hidden;
+    display: flex; align-items: center;
+    background: #180800;
+  }
+
+  /* Photo background */
+  .ms-bg {
+    position: absolute; inset: 0; z-index: 1;
+    background: url('assets/raw/Astronauta_em_paisagem_Marte_202605120044.jpeg') center 40% / cover no-repeat;
+    filter: saturate(1.15) brightness(.88);
+  }
+
+  /* Layered overlays: left text panel darkening + top atmosphere + bottom shadow */
+  .ms-overlay {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background:
+      linear-gradient(to right,  rgba(18,4,0,.88) 0%, rgba(12,3,0,.55) 30%, rgba(0,0,0,.05) 58%, transparent 100%),
+      linear-gradient(to bottom, rgba(60,18,0,.55) 0%, transparent 28%),
+      linear-gradient(to top,    #030000 0%, rgba(6,1,0,.98) 3%, rgba(12,4,1,.94) 7%, rgba(20,8,2,.82) 15%, rgba(30,12,4,.56) 28%, rgba(40,16,5,.22) 40%, transparent 52%),
+      radial-gradient(ellipse at 70% 50%, transparent 35%, rgba(15,3,0,.4) 100%);
+  }
+
+  /* Warm Martian sky haze at top */
+  .ms-sky-haze {
+    position: absolute; top: 0; left: 0; right: 0; height: 32%;
+    z-index: 3; pointer-events: none;
+    background: linear-gradient(to bottom,
+      rgba(160,65,10,.42) 0%,
+      rgba(180,80,20,.2)  40%,
+      transparent         100%
+    );
+  }
+
+  /* Dust particles layer */
+  .ms-dust-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  .ms-dust-particle {
+    position: absolute; border-radius: 50%;
+    background: rgba(200,110,40,.5);
+    animation: dustDrift var(--d,7s) var(--dl,0s) ease-in-out infinite;
+  }
+  @keyframes dustDrift {
+    0%   { opacity: 0;   transform: translate(0, 0); }
+    15%  { opacity: .7; }
+    85%  { opacity: .4; }
+    100% { opacity: 0;   transform: translate(var(--tx,20px), -50px); }
+  }
+
+  /* ── Nave (rocket ship) in background sky ── */
+  .ms-ship {
+    position: absolute; z-index: 4; pointer-events: none;
+    top: 9%; right: 9%;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .ms-ship-img {
+    width: 88px; object-fit: contain;
+    transform: rotate(-12deg) scaleX(-1);
+    filter:
+      sepia(.5) saturate(.7) hue-rotate(-5deg) brightness(.9)
+      drop-shadow(0 0 14px rgba(230,130,50,.6))
+      drop-shadow(0 0 35px rgba(200,90,20,.3));
+    opacity: .78;
+    animation: shipHover 9s ease-in-out infinite;
+  }
+  .ms-ship-exhaust {
+    width: 28px; height: 20px; margin-top: -5px;
+    background: radial-gradient(ellipse at 50% 0%,
+      rgba(255,190,70,.9) 0%, rgba(255,110,20,.45) 45%, transparent 80%
+    );
+    filter: blur(5px);
+    animation: exhaustFlicker 1.1s ease-in-out infinite;
+  }
+  .ms-ship-corona {
+    position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+    width: 55px; height: 18px;
+    background: radial-gradient(ellipse, rgba(255,150,50,.35) 0%, transparent 70%);
+    border-radius: 50%; filter: blur(9px);
+  }
+  @keyframes shipHover {
+    0%,100% { transform: rotate(-12deg) scaleX(-1) translateY(0); }
+    50%      { transform: rotate(-12deg) scaleX(-1) translateY(-9px); }
+  }
+  @keyframes exhaustFlicker {
+    0%,100% { transform: scaleX(1)   scaleY(1);   opacity: .75; }
+    50%      { transform: scaleX(1.2) scaleY(1.1); opacity: 1;   }
+  }
+
+  /* ── Content layout ── */
+  .ms-inner {
+    position: relative; z-index: 10;
+    width: 100%; max-width: 1240px;
+    margin: 0 auto; padding: 100px 60px;
+    display: flex; align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Glass panel */
+  .ms-panel {
+    max-width: 460px; position: relative;
+    background: rgba(16,4,0,.6);
+    backdrop-filter: blur(18px) saturate(1.4);
+    border: 1px solid rgba(193,68,14,.22);
+    border-radius: 20px; padding: 48px;
+  }
+  /* scan-line subtle texture */
+  .ms-panel::before {
+    content: ''; position: absolute; inset: 0; border-radius: 20px; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, transparent 0px, transparent 3px,
+      rgba(193,68,14,.018) 3px, rgba(193,68,14,.018) 4px
+    );
+  }
+
+  .ms-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 100px;
+    background: rgba(193,68,14,.22); border: 1px solid rgba(220,90,20,.45);
+    font-size: 9px; font-family: monospace;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: #e8834a; margin-bottom: 28px;
+  }
+
+  .ms-h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic; font-weight: 400;
+    font-size: clamp(2rem, 3.8vw, 3.4rem);
+    color: #f0a870; line-height: 1.2; margin-bottom: 20px;
+  }
+
+  .ms-desc {
+    font-size: 15px; line-height: 1.8;
+    color: rgba(235,160,90,.65); margin-bottom: 32px;
+  }
+
+  .ms-divider {
+    width: 100%; height: 1px; margin-bottom: 28px;
+    background: linear-gradient(90deg, rgba(193,68,14,.45), transparent);
+  }
+
+  /* Stats grid */
+  .ms-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px;
+  }
+  .ms-stat {
+    background: rgba(193,68,14,.1); border: 1px solid rgba(193,68,14,.2);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .ms-stat-num {
+    display: block; font-size: 1.5rem; font-weight: 900; font-family: 'Cormorant Garamond', serif;
+    font-style: italic; color: #e8834a; line-height: 1; margin-bottom: 3px;
+  }
+  .ms-stat-label {
+    font-size: 8px; font-family: monospace;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(235,160,90,.4);
+  }
+
+  .btn-mars {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #c1440e, #7a1a00);
+    color: #f5d5a0; padding: 15px 30px; border-radius: 100px;
+    font-size: 11px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; border: none; cursor: pointer;
+    font-family: inherit; position: relative; overflow: hidden;
+    box-shadow: 0 0 28px rgba(193,68,14,.4);
+    transition: all .3s ease;
+  }
+  .btn-mars:hover {
+    box-shadow: 0 0 55px rgba(193,68,14,.65), 0 0 100px rgba(193,68,14,.2);
+    transform: scale(1.04);
+  }
+
+  /* HUD telemetry bar at bottom */
+  .ms-hud {
+    position: absolute; bottom: 28px; left: 60px; right: 60px; z-index: 10;
+    display: flex; gap: 28px; pointer-events: none;
+  }
+  .ms-hud-item {
+    font-size: 8px; font-family: monospace; letter-spacing: 2px;
+    text-transform: uppercase; color: rgba(220,120,60,.45);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ms-hud-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #c1440e; box-shadow: 0 0 5px rgba(193,68,14,.8);
+    animation: ledPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 1024px) {
+    .ms-inner { padding: 100px 40px; }
+    .ms-panel { max-width: 100%; }
+    .ms-ship-img { width: 68px; }
+    .ms-hud { left: 40px; right: 40px; }
+  }
+  @media (max-width: 640px) {
+    .ms-inner { padding: 80px 20px; min-height: auto; }
+    .ms-panel { padding: 28px 22px; }
+    .ms-ship { top: 5%; right: 4%; }
+    .ms-ship-img { width: 52px; }
+    .ms-hud { left: 20px; right: 20px; flex-wrap: wrap; gap: 10px; }
+    .ms-hud-item:nth-child(n+3) { display: none; }
+  }
+  </style>
+</head>
+
+<body>
+  <div class="scroll-bar" id="prog"></div>
+  <div class="star-field" id="sf"></div>
+
+  <!-- ═══════════════════════════════════
+       HERO
+  ═══════════════════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="blob blob-a" id="blobA"></div>
+    <div class="blob blob-b" id="blobB"></div>
+    <div class="blob blob-c"></div>
+
+    <div class="hero-inner">
+
+      <!-- Text column -->
+      <div class="hero-text">
+        <div class="hero-badge" id="hbadge">
+          <span class="badge badge-blue">🛰 Foguete de Brinquedo Premium — Edição Galáctica</span>
+        </div>
+
+        <div id="htitle">
+          <h1 class="hero-h1">
+            <span class="tr-wrap"><span class="tr-inner d2 gt-space">SPACE</span></span><br>
+            <span class="tr-wrap"><span class="tr-inner d3 gt-space">ORBIT</span></span>
+          </h1>
+          <p class="hero-sub">
+            <span class="tr-wrap"><span class="tr-inner d5">Lançando Sonhos ao Infinito</span></span>
+          </p>
+        </div>
+
+        <p class="hero-desc" id="hdesc">
+          O foguete de brinquedo mais avançado do universo. Engenharia aeroespacial real em escala
+          1:110 — construído para quem sonha alto, e alto mesmo.
+        </p>
+
+        <div class="hero-cta" id="hcta">
+          <button class="btn btn-launch beam" id="buyBtn">
+            🚀 Comprar Agora — R$&nbsp;389,90
+          </button>
+          <button class="btn btn-outline beam">
+            <iconify-icon icon="solar:telescope-bold-duotone"></iconify-icon>
+            Ver Detalhes
+          </button>
+        </div>
+
+        <div class="hero-feats" id="hfeats">
+          <span class="badge badge-blue">🛰 Escala 1:110</span>
+          <span class="badge badge-purple">💡 LED Integrado</span>
+          <span class="badge badge-gold">⭐ Colecionável</span>
+          <span class="badge badge-green">✓ Premium</span>
+        </div>
+      </div>
+
+      <!-- Visual column -->
+      <div class="hero-visual">
+        <div class="telemetry" id="tel">
+          <div class="trow"><div class="tdot tdot-g"></div>SISTEMA: NOMINAL</div>
+          <div class="trow"><div class="tdot tdot-c"></div><span id="altReadout">ALTITUDE: 0 KM</span></div>
+          <div class="trow"><div class="tdot tdot-o"></div>THRUST: 100%</div>
+        </div>
+
+        <div class="rocket-scene" id="rscene">
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="rocket-glow"></div>
+          <div class="thruster-halo"></div>
+
+          <img
+            src="assets/raw/foguetev1.jpeg"
+            alt="Space Orbit — Foguete de Brinquedo Premium"
+            class="rocket-img"
+            id="rimg"
+            title="Clique para boost! 🚀"
+          />
+
+          <div class="flame-stack" id="flames">
+            <div class="flame fl-outer"></div>
+            <div class="flame fl-mid"></div>
+            <div class="flame fl-core"></div>
+          </div>
+
+          <div class="trail-container" id="trail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-hint" id="shint">
+      <span class="sh-label">Deslizar para decolagem</span>
+      <div class="sh-arrow"></div>
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee-strip">
+    <div class="marquee-wrap">
+      <div class="marquee-track">
+        <span class="mi">Space Orbit Design System</span><span class="ms">✦</span>
+        <span class="mi">Foguete Premium Colecionável</span><span class="ms">✦</span>
+        <span class="mi">Animações Cósmicas</span><span class="ms">✦</span>
+        <span class="mi">Design Estelar</span><span class="ms">✦</span>
+        <span class="mi">Space Orbit Design System</span><span class="ms">✦</span>
+        <span class="mi">Foguete Premium Colecionável</span><span class="ms">✦</span>
+        <span class="mi">Animações Cósmicas</span><span class="ms">✦</span>
+        <span class="mi">Design Estelar</span><span class="ms">✦</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       DESERT STARS — Segunda Dobra
+  ═══════════════════════════════════ -->
+  <section class="desert-stars" id="desert">
+    <div class="ds-stars-layer" id="dsStars"></div>
+    <div class="ds-mars" id="dsMars"></div>
+
+    <div class="ds-inner">
+
+      <!-- Text column -->
+      <div class="ds-text">
+        <p class="ds-ornament">Space Orbit · Edição Galáctica</p>
+        <div class="ds-divider ds-divider-sm"></div>
+
+        <h2 class="ds-quote">
+          Onde o deserto sussurra<br>
+          e as estrelas se acendem
+        </h2>
+
+        <div class="ds-divider"></div>
+
+        <p class="ds-sub">
+          Uma peça que não pertence apenas ao chão — ela anseia
+          pelo vazio entre os mundos. Engenharia que transcende
+          o brinquedo e toca a arte.
+        </p>
+
+        <span class="ds-badge">✦ Escala 1:110 · 42 cm · LED integrado</span>
+      </div>
+
+      <!-- Rocket column -->
+      <div class="ds-rocket">
+        <div class="ds-rocket-wrap">
+          <div class="ds-orbit-ring"><div class="ds-orbit-dot"></div></div>
+
+          <img
+            src="assets/raw/foguetev1.jpeg"
+            alt="Space Orbit — Foguete Premium"
+            class="ds-rocket-img"
+          />
+
+          <!-- Floating spec tags -->
+          <div class="ds-spec-tag dst-1">
+            <strong>42 cm</strong>Altura total
+          </div>
+          <div class="ds-spec-tag dst-2">
+            <strong>LED</strong>Iluminação
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════
+       MARS SURFACE — Terceira Dobra
+  ═══════════════════════════════════ -->
+  <section class="mars-surface" id="mars-surface">
+
+    <!-- Photo + overlays -->
+    <div class="ms-bg"></div>
+    <div class="ms-overlay"></div>
+    <div class="ms-sky-haze"></div>
+    <div class="ms-dust-layer" id="msDust"></div>
+
+    <!-- Nave no fundo do céu marciano -->
+    <div class="ms-ship">
+      <img src="assets/raw/foguetev1.jpeg" alt="Nave Space Orbit" class="ms-ship-img" />
+      <div class="ms-ship-exhaust"></div>
+      <div class="ms-ship-corona"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="ms-inner">
+      <div class="ms-panel">
+
+        <span class="ms-badge">🔴 Missão: Marte · Sol 127</span>
+
+        <h2 class="ms-h2">
+          Primeiro passo<br>
+          na superfície vermelha
+        </h2>
+
+        <p class="ms-desc">
+          O Astronauta Space Orbit foi construído para cada missão.
+          Em escala compatível com o foguete, ele está pronto para
+          explorar qualquer superfície — inclusive a sua mesa.
+        </p>
+
+        <div class="ms-divider"></div>
+
+        <div class="ms-stats">
+          <div class="ms-stat">
+            <span class="ms-stat-num">−63°C</span>
+            <span class="ms-stat-label">Temp. Superfície</span>
+          </div>
+          <div class="ms-stat">
+            <span class="ms-stat-num">1:12</span>
+            <span class="ms-stat-label">Escala Real</span>
+          </div>
+          <div class="ms-stat">
+            <span class="ms-stat-num">18cm</span>
+            <span class="ms-stat-label">Altura Total</span>
+          </div>
+          <div class="ms-stat">
+            <span class="ms-stat-num">Kit</span>
+            <span class="ms-stat-label">Com Foguete</span>
+          </div>
+        </div>
+
+        <button class="btn-mars beam">
+          🔴 Adicionar ao Kit — R$&nbsp;149,90
+        </button>
+
+      </div>
+    </div>
+
+    <!-- HUD telemetria -->
+    <div class="ms-hud">
+      <div class="ms-hud-item"><div class="ms-hud-dot"></div>PRESSÃO: 0.6 kPa</div>
+      <div class="ms-hud-item"><div class="ms-hud-dot" style="animation-delay:.4s"></div>GRAVIDADE: 3.7 m/s²</div>
+      <div class="ms-hud-item"><div class="ms-hud-dot" style="animation-delay:.8s"></div>VENTO: 12 m/s NNE</div>
+      <div class="ms-hud-item"><div class="ms-hud-dot" style="animation-delay:1.2s"></div>STATUS: NOMINAL</div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════
+       TEASER
+  ═══════════════════════════════════ -->
+  <section class="teaser">
+    <div class="teaser-inner">
+      <span class="badge badge-gold" style="margin-bottom:24px;display:inline-flex;">⭐ Especificações do Produto</span>
+      <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:800;margin-bottom:20px;" class="gt-space">
+        Engenharia Aeroespacial em Miniatura
+      </h2>
+      <p style="font-size:17px;color:var(--muted);line-height:1.75;max-width:560px;margin:0 auto;">
+        Cada detalhe é uma obra-prima. Acabamento polido, compartimentos abríveis, LED integrado
+        e base de exibição premium inclusa. O presente perfeito para quem ama o espaço.
+      </p>
+      <div class="stat-grid">
+        <div>
+          <span class="stat-num" style="color:var(--sky);">1:110</span>
+          <span class="stat-label">Escala Real</span>
+        </div>
+        <div>
+          <span class="stat-num" style="color:var(--gold);">42cm</span>
+          <span class="stat-label">Altura Total</span>
+        </div>
+        <div>
+          <span class="stat-num" style="color:var(--cyan);">LED</span>
+          <span class="stat-label">Iluminação</span>
+        </div>
+        <div>
+          <span class="stat-num" style="color:var(--green);">3×</span>
+          <span class="stat-label">Sem Juros</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div style="max-width:1240px;margin:0 auto;">
+      <div class="orbit-ring-sm">
+        <div class="orbit-ring"><div class="orbit-dot" style="width:5px;height:5px;top:-2.5px;left:calc(50% - 2.5px);"></div></div>
+        <img src="assets/raw/foguetev1.jpeg" alt="Space Orbit"
+          style="width:100%;height:100%;object-fit:contain;position:relative;z-index:2;animation:rocketFloat 4s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(79,195,247,.45));" />
+      </div>
+      <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;" class="gt-space">Space Orbit</h3>
+      <p style="font-size:10px;font-family:monospace;color:var(--muted);letter-spacing:3px;margin-bottom:24px;">FOGUETE PREMIUM · MISSÃO: DESIGN ESTELAR</p>
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:32px;">
+        <span class="badge badge-blue">🛰 Colecionável</span>
+        <span class="badge badge-purple">💡 LED</span>
+        <span class="badge badge-gold">⭐ Premium</span>
+        <span class="badge badge-green">✓ Pronto para Lançar</span>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:20px;">
+        <p style="font-size:10px;color:var(--muted);font-family:monospace;letter-spacing:1.5px;">
+          SPACE ORBIT · FOGUETE GALÁCTICO · CONSTRUÍDO COM TECNOLOGIAS WEB MODERNAS
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ── Star field ── */
+    const sf = document.getElementById('sf');
+    for (let i = 0; i < 260; i++) {
+      const el = document.createElement('div');
+      el.className = 'star';
+      const sz = Math.random() * 2.2 + 0.3;
+      el.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${(Math.random()*4+1.5).toFixed(1)}s;--delay:${(Math.random()*6).toFixed(1)}s;`;
+      sf.appendChild(el);
+    }
+
+    /* ── Particle trail ── */
+    const trail = document.getElementById('trail');
+    const colors = ['var(--cyan)', 'rgba(255,111,0,.7)', 'rgba(0,229,255,.6)', 'rgba(255,215,64,.5)'];
+    for (let i = 0; i < 16; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const sz = Math.random() * 5 + 2;
+      p.style.cssText = `width:${sz}px;height:${sz}px;background:${colors[i%colors.length]};left:${(Math.random()-.5)*32}px;--d:${(Math.random()*.8+.7).toFixed(2)}s;--dl:${(Math.random()).toFixed(2)}s;`;
+      trail.appendChild(p);
+    }
+
+    /* ── Hero text reveal ── */
+    setTimeout(() => document.getElementById('hbadge')?.classList.add('in'), 80);
+    setTimeout(() => document.getElementById('htitle')?.classList.add('reveal-active'), 200);
+    setTimeout(() => {
+      ['hdesc', 'hcta', 'hfeats', 'tel'].forEach(id => {
+        document.getElementById(id)?.classList.add('in');
+      });
+    }, 500);
+
+    /* ── Scroll progress bar ── */
+    const prog = document.getElementById('prog');
+    window.addEventListener('scroll', () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      prog.style.width = max > 0 ? `${(window.scrollY / max) * 100}%` : '0%';
+    }, { passive: true });
+
+    /* ── GSAP: scroll launch animation ── */
+    const rscene  = document.getElementById('rscene');
+    const flames  = document.getElementById('flames');
+    const shint   = document.getElementById('shint');
+    const blobA   = document.getElementById('blobA');
+    const blobB   = document.getElementById('blobB');
+    const altEl   = document.getElementById('altReadout');
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: '+=130%',
+        pin: true,
+        scrub: 1.5,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onUpdate(self) {
+          if (altEl) altEl.textContent = `ALTITUDE: ${Math.round(self.progress * 420)} KM`;
+        }
+      }
+    });
+
+    /* Rocket ascent: moves up and shrinks into the distance */
+    tl.to(rscene, { y: '-88vh', scale: .50, rotation: -12, ease: 'power1.inOut' }, 0);
+    /* Flames grow with thrust */
+    tl.to(flames, { scaleY: 3.2, scaleX: 1.2, opacity: 1, ease: 'none' }, 0);
+    /* Parallax blobs */
+    tl.to(blobA, { y: -100, ease: 'none' }, 0);
+    tl.to(blobB, { y: 100, ease: 'none' }, 0);
+    /* Scroll hint fades */
+    tl.to(shint, { opacity: 0, y: 14, ease: 'none', duration: 0.25 }, 0);
+    /* Hero text blurs out as rocket launches */
+    tl.to('.hero-text', { opacity: 0, filter: 'blur(22px)', y: -28, ease: 'power2.in', duration: .42 }, 0);
+
+    /* ── Scroll hint arrow bob ── */
+    gsap.to('#shint .sh-arrow', {
+      y: 7, opacity: .35,
+      duration: 1.3, ease: 'power1.inOut',
+      yoyo: true, repeat: -1
+    });
+
+    /* ── Subtle mouse parallax on blobs only ── */
+    document.addEventListener('mousemove', e => {
+      const cx = (e.clientX / window.innerWidth  - .5) * 2;
+      const cy = (e.clientY / window.innerHeight - .5) * 2;
+      gsap.to(blobA, { x: cx * -24, y: cy * -18, duration: 2.2, ease: 'power1.out', overwrite: 'auto' });
+      gsap.to(blobB, { x: cx *  18, y: cy *  14, duration: 2.8, ease: 'power1.out', overwrite: 'auto' });
+    });
+
+    /* ── Easter egg: click rocket = boost ── */
+    let boosting = false;
+    const rimg = document.getElementById('rimg');
+
+    document.getElementById('rscene').addEventListener('click', () => {
+      if (boosting) return;
+      boosting = true;
+      rimg.style.animation = 'none';
+
+      gsap.timeline({
+        onComplete() { rimg.style.animation = ''; boosting = false; }
+      })
+        .to(rimg,   { y: -200, scale: .55, rotation: -18, duration: .65, ease: 'power4.out' })
+        .to(rimg,   { y: 0, scale: 1, rotation: -3, duration: 1.0, ease: 'bounce.out' });
+
+      gsap.to(flames, { scaleY: 4.8, scaleX: 1.5, duration: .25, yoyo: true, repeat: 6, ease: 'none' });
+    });
+
+    /* ── Buy button: smooth scroll to teaser ── */
+    document.getElementById('buyBtn').addEventListener('click', () => {
+      document.querySelector('.teaser')?.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    /* ── Desert stars field ── */
+    const dsStars = document.getElementById('dsStars');
+    if (dsStars) {
+      for (let i = 0; i < 120; i++) {
+        const s = document.createElement('div');
+        s.className = 'ds-star-accent';
+        const sz = Math.random() * 1.8 + .5;
+        const top = Math.random() * 100;
+        // Stars denser in lower 60% (the dark sky zone)
+        const opacity = top < 30 ? Math.random() * .15 + .02 : Math.random() * .55 + .1;
+        s.style.cssText = `
+          width:${sz}px; height:${sz}px;
+          top:${top}%; left:${Math.random()*100}%;
+          opacity:${opacity};
+          --dur:${(Math.random()*3+2).toFixed(1)}s;
+          --delay:${(Math.random()*5).toFixed(1)}s;
+          animation-delay:${(Math.random()*5).toFixed(1)}s;
+        `;
+        dsStars.appendChild(s);
+      }
+    }
+
+    /* ── Desert section scroll reveal ── */
+    gsap.from('.ds-text', {
+      scrollTrigger: { trigger: '#desert', start: 'top 70%' },
+      y: 44, opacity: 0, filter: 'blur(14px)', duration: 1.3, ease: 'power3.out'
+    });
+    gsap.from('.ds-rocket-wrap', {
+      scrollTrigger: { trigger: '#desert', start: 'top 65%' },
+      y: 60, opacity: 0, filter: 'blur(12px)', duration: 1.4, ease: 'power2.out', delay: .2
+    });
+    gsap.from('.ds-spec-tag', {
+      scrollTrigger: { trigger: '#desert', start: 'top 55%' },
+      x: (i) => i === 0 ? -30 : 30, opacity: 0, filter: 'blur(10px)',
+      duration: .9, ease: 'power2.out', stagger: .15, delay: .5
+    });
+
+    /* ── Mars: fade-in + subtle parallax ── */
+    gsap.from('#dsMars', {
+      scrollTrigger: { trigger: '#desert', start: 'top 60%' },
+      scale: .4, opacity: 0, duration: 2.2, ease: 'power3.out', delay: .4
+    });
+    gsap.to('#dsMars', {
+      scrollTrigger: { trigger: '#desert', start: 'top bottom', end: 'bottom top', scrub: 1.5 },
+      y: -40, ease: 'none'
+    });
+
+    /* ── Mars Surface: dust particles ── */
+    const msDust = document.getElementById('msDust');
+    if (msDust) {
+      for (let i = 0; i < 38; i++) {
+        const d = document.createElement('div');
+        d.className = 'ms-dust-particle';
+        const sz = Math.random() * 3.5 + 1;
+        d.style.cssText = `
+          width:${sz}px; height:${sz}px;
+          bottom:${Math.random() * 28}%;
+          left:${Math.random() * 100}%;
+          --d:${(Math.random() * 5 + 5).toFixed(1)}s;
+          --dl:${(Math.random() * 8).toFixed(1)}s;
+          --tx:${((Math.random() - .5) * 90).toFixed(0)}px;
+        `;
+        msDust.appendChild(d);
+      }
+    }
+
+    /* ── Mars Surface: GSAP scroll reveals ── */
+    gsap.from('.ms-panel', {
+      scrollTrigger: { trigger: '#mars-surface', start: 'top 68%' },
+      x: -55, opacity: 0, filter: 'blur(16px)', duration: 1.3, ease: 'power3.out'
+    });
+    gsap.from('.ms-ship', {
+      scrollTrigger: { trigger: '#mars-surface', start: 'top 62%' },
+      y: -28, opacity: 0, filter: 'blur(12px)', duration: 1.6, ease: 'power2.out', delay: .35
+    });
+    gsap.from('.ms-hud-item', {
+      scrollTrigger: { trigger: '#mars-surface', start: 'top 52%' },
+      y: 12, opacity: 0, filter: 'blur(8px)', duration: .7, ease: 'power2.out', stagger: .12, delay: .7
+    });
+    /* Subtle background parallax */
+    gsap.to('.ms-bg', {
+      scrollTrigger: {
+        trigger: '#mars-surface', start: 'top bottom',
+        end: 'bottom top', scrub: 1.2
+      },
+      yPercent: 12, ease: 'none'
+    });
+
+    /* ── Teaser scroll reveals ── */
+    gsap.from('.teaser .badge', {
+      scrollTrigger: { trigger: '.teaser', start: 'top 78%' },
+      opacity: 0, y: 16, filter: 'blur(10px)', duration: .9, ease: 'power2.out'
+    });
+    gsap.from('.teaser h2', {
+      scrollTrigger: { trigger: '.teaser', start: 'top 74%' },
+      opacity: 0, y: 28, filter: 'blur(16px)', duration: 1.1, ease: 'power3.out', delay: .15
+    });
+    gsap.from('.teaser p', {
+      scrollTrigger: { trigger: '.teaser', start: 'top 70%' },
+      opacity: 0, y: 20, filter: 'blur(10px)', duration: 1, ease: 'power2.out', delay: .3
+    });
+    gsap.from('.stat-grid > div', {
+      scrollTrigger: { trigger: '.teaser', start: 'top 64%' },
+      opacity: 0, y: 24, filter: 'blur(12px)', duration: .85, ease: 'power2.out', stagger: .13, delay: .45
+    });
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+<title>Space Orbit — Design System v1.0</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+/* ── Design Tokens ── */
+:root {
+  --void:    #030712;
+  --deep:    #0d1b35;
+  --navy:    #0f2040;
+  --blue:    #1d6fde;
+  --sky:     #4fc3f7;
+  --cyan:    #00e5ff;
+  --nebula:  #6e3fa3;
+  --red:     #e53935;
+  --gold:    #ffd740;
+  --green:   #3caf65;
+  --white:   #f0f4ff;
+  --muted:   rgba(232,240,254,.5);
+  --border:  rgba(79,195,247,.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--void);
+  color: var(--white);
+  overflow-x: hidden;
+}
+
+/* ── Stars ── */
+.star-field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle var(--dur,3s) var(--delay,0s) infinite; }
+@keyframes twinkle {
+  0%,100% { opacity: .15; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.6); }
+}
+
+/* ── Reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+}
+.reveal.active { opacity: 1; transform: translateY(0); }
+.delay-100 { transition-delay: .1s; }
+.delay-200 { transition-delay: .2s; }
+.delay-300 { transition-delay: .3s; }
+.delay-500 { transition-delay: .5s; }
+.delay-700 { transition-delay: .7s; }
+
+/* ── Text reveal ── */
+.tr-wrap { overflow: hidden; display: inline-block; vertical-align: bottom; }
+.tr-inner { display: block; transform: translateY(110%); opacity: 0; transition: transform 1.2s cubic-bezier(.16,1,.3,1), opacity 1.2s ease; }
+.reveal-active .tr-inner { transform: translateY(0); opacity: 1; }
+
+/* ── Gradient texts ── */
+.gt-space {
+  background: linear-gradient(135deg, var(--white) 0%, var(--sky) 50%, var(--cyan) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.gt-nebula {
+  background: linear-gradient(135deg, var(--sky) 0%, var(--nebula) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.gt-fire {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--red) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* ── Grid bg ── */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(79,195,247,.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(79,195,247,.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* ── Marquee ── */
+.marquee-wrap { display: flex; overflow: hidden; user-select: none; }
+.marquee-track { flex-shrink: 0; display: flex; min-width: 100%; animation: marquee 32s linear infinite; }
+@keyframes marquee { to { transform: translateX(-100%); } }
+
+/* ── Nav ── */
+.ds-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: rgba(3,7,18,.92); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  overflow-x: auto; white-space: nowrap;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+}
+.ds-nav a {
+  color: var(--muted); text-decoration: none;
+  padding: 14px 20px; display: inline-block; flex-shrink: 0;
+  transition: color .2s, background .2s;
+}
+.ds-nav a:hover { color: var(--sky); background: rgba(79,195,247,.06); }
+.ds-brand {
+  font-weight: 800; font-size: 11px; letter-spacing: 3px;
+  color: var(--white) !important;
+  padding: 14px 24px !important;
+  border-right: 1px solid var(--border);
+}
+.nav-anim { opacity: 0; transform: translateY(-10px); transition: all .7s ease; }
+.nav-anim.in { opacity: 1; transform: none; }
+
+/* ── Section shell ── */
+.ds-section { padding: 100px 0; position: relative; }
+.ds-label { font-size: 10px; font-family: monospace; letter-spacing: 3px; text-transform: uppercase; color: var(--sky); display: block; margin-bottom: 10px; }
+.ds-title { font-size: clamp(2rem,5vw,3.2rem); font-weight: 800; letter-spacing: -.03em; margin-bottom: 56px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.ds-wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+.ds-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(79,195,247,.3), transparent); margin: 56px 0; }
+
+/* ── Space card ── */
+.space-card {
+  background: rgba(13,27,53,.6); border: 1px solid var(--border);
+  border-radius: 16px; backdrop-filter: blur(10px);
+  transition: border-color .3s, transform .3s, box-shadow .3s;
+}
+.space-card:hover { border-color: rgba(79,195,247,.4); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(29,111,222,.15); }
+
+/* ── Flashlight card ── */
+.flashlight { position: relative; }
+.flashlight::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(480px circle at var(--mx,50%) var(--my,50%), rgba(79,195,247,.12), transparent 40%);
+  opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 2;
+}
+.flashlight:hover::before { opacity: 1; }
+
+/* ── Beam button ── */
+.beam { position: relative; overflow: hidden; }
+.beam::before {
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  transition: left .55s;
+}
+.beam:hover::before { left: 100%; }
+
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; font-family: inherit; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; transition: all .3s ease; text-decoration: none; }
+.btn-primary { background: linear-gradient(135deg, #1d6fde, #0d4fa0); color: #fff; padding: 13px 28px; border-radius: 8px; font-size: 12px; }
+.btn-primary:hover { background: linear-gradient(135deg, #2d80ef, #1d6fde); box-shadow: 0 8px 28px rgba(29,111,222,.4); transform: translateY(-2px); }
+.btn-outline { background: transparent; color: var(--sky); border: 2px solid var(--sky); padding: 11px 26px; border-radius: 8px; font-size: 12px; }
+.btn-outline:hover { background: rgba(79,195,247,.1); box-shadow: 0 0 20px rgba(79,195,247,.3); }
+.btn-ghost { background: transparent; color: var(--white); border: 1px solid rgba(232,240,254,.2); padding: 12px 26px; border-radius: 8px; font-size: 12px; }
+.btn-ghost:hover { border-color: rgba(232,240,254,.5); background: rgba(232,240,254,.05); }
+.btn-danger { background: linear-gradient(135deg, #e53935, #c62828); color: #fff; padding: 13px 28px; border-radius: 8px; font-size: 12px; }
+.btn-danger:hover { box-shadow: 0 8px 28px rgba(229,57,53,.4); transform: translateY(-2px); }
+.btn-launch {
+  background: linear-gradient(135deg, #e53935, #ff6f00);
+  color: #fff; padding: 16px 42px; border-radius: 100px;
+  font-size: 13px; font-weight: 800; letter-spacing: 3px;
+  position: relative; overflow: hidden;
+}
+.btn-launch:hover { box-shadow: 0 0 40px rgba(229,57,53,.6), 0 0 80px rgba(255,111,0,.3); transform: scale(1.04); }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 13px; border-radius: 100px; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.badge-blue   { background: rgba(79,195,247,.12);  color: var(--sky);    border: 1px solid rgba(79,195,247,.3);  }
+.badge-purple { background: rgba(110,63,163,.18);  color: #c5a8f5;       border: 1px solid rgba(110,63,163,.4);  }
+.badge-red    { background: rgba(229,57,53,.12);   color: #f48a89;       border: 1px solid rgba(229,57,53,.3);   }
+.badge-green  { background: rgba(60,175,101,.12);  color: #7ed49e;       border: 1px solid rgba(60,175,101,.3);  }
+.badge-gold   { background: rgba(255,215,64,.08);  color: var(--gold);   border: 1px solid rgba(255,215,64,.3);  }
+
+/* ── Inputs ── */
+.space-input {
+  background: rgba(13,27,53,.8); border: 1px solid var(--border);
+  color: var(--white); padding: 13px 18px; border-radius: 10px;
+  font-size: 14px; width: 100%; outline: none; font-family: inherit;
+  transition: border-color .3s, box-shadow .3s;
+}
+.space-input:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(79,195,247,.15); }
+.space-input::placeholder { color: var(--muted); }
+.space-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+/* ── Progress ── */
+.prog-track { height: 8px; background: rgba(79,195,247,.1); border-radius: 100px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--blue), var(--cyan)); box-shadow: 0 0 10px rgba(0,229,255,.4); }
+
+/* ── Spec table ── */
+.spec-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.spec-table th { text-align: left; padding: 10px 14px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+.spec-table td { padding: 12px 14px; border-bottom: 1px solid rgba(79,195,247,.06); color: var(--white); vertical-align: middle; }
+.spec-table code { background: rgba(79,195,247,.12); padding: 2px 7px; border-radius: 4px; font-size: 11px; color: var(--sky); }
+
+/* ── Swatch ── */
+.swatch-color { width: 100%; aspect-ratio: 1; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+.swatch-name { font-size: 11px; font-weight: 600; display: block; margin-top: 10px; }
+.swatch-hex  { font-size: 10px; font-family: monospace; color: var(--muted); display: block; }
+
+/* ── Rocket ── */
+@keyframes float { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-18px) rotate(-3deg); } }
+@keyframes spin  { to { transform: rotate(360deg); } }
+@keyframes throb { 0%,100% { box-shadow: 0 0 20px rgba(0,229,255,.4), 0 0 60px rgba(0,229,255,.1); } 50% { box-shadow: 0 0 50px rgba(0,229,255,.9), 0 0 120px rgba(0,229,255,.3); } }
+
+.orbit-ring {
+  position: absolute; inset: 0; border: 1px dashed rgba(79,195,247,.2);
+  border-radius: 50%; animation: spin 22s linear infinite;
+}
+.orbit-dot {
+  position: absolute; width: 8px; height: 8px; background: var(--cyan);
+  border-radius: 50%; top: -4px; left: calc(50% - 4px);
+  box-shadow: 0 0 10px var(--cyan);
+}
+.thruster-halo {
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  width: 70px; height: 35px;
+  background: radial-gradient(ellipse, rgba(0,229,255,.6) 0%, transparent 70%);
+  animation: throb 2s ease-in-out infinite;
+}
+
+/* ── Icon cell ── */
+.icon-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.icon-box {
+  width: 62px; height: 62px; display: flex; align-items: center; justify-content: center;
+  background: rgba(13,27,53,.8); border: 1px solid var(--border); border-radius: 12px;
+  transition: border-color .25s, transform .25s;
+  cursor: default;
+}
+.icon-box:hover { border-color: rgba(79,195,247,.45); transform: scale(1.1); }
+
+/* ── Animations page ── */
+@keyframes beat { 0%,100% { transform: scale(1); } 25%,75% { transform: scale(1.35); } }
+.beat-once { animation: beat .85s ease 2; }
+</style>
+</head>
+
+<body style="padding-top:48px;">
+
+<!-- ── Star field ── -->
+<div class="star-field" id="sf"></div>
+
+<!-- ── Nav ── -->
+<nav class="ds-nav nav-anim" id="nav">
+  <span class="ds-brand">🚀 Space Orbit DS</span>
+  <a href="#s0">Hero</a>
+  <a href="#s1">Tipografia</a>
+  <a href="#s2">Cores</a>
+  <a href="#s3">Componentes</a>
+  <a href="#s4">Animações</a>
+  <a href="#s5">Ícones</a>
+  <a href="#s6">Motion</a>
+</nav>
+
+<!-- ══════════════════════════════════════
+     S0 — HERO
+══════════════════════════════════════ -->
+<section id="s0" class="grid-bg relative" style="min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 20% 50%,rgba(110,63,163,.14) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(29,111,222,.1) 0%,transparent 40%),var(--void);">
+
+  <!-- Blobs -->
+  <div style="position:absolute;top:12%;right:8%;width:380px;height:380px;background:radial-gradient(circle,rgba(29,111,222,.18) 0%,transparent 70%);border-radius:50%;animation:float 7s ease-in-out infinite;pointer-events:none;"></div>
+  <div style="position:absolute;bottom:15%;left:4%;width:280px;height:280px;background:radial-gradient(circle,rgba(110,63,163,.14) 0%,transparent 70%);border-radius:50%;animation:float 9s ease-in-out infinite reverse;pointer-events:none;"></div>
+
+  <div class="ds-wrap" style="position:relative;z-index:5;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
+
+    <!-- Text -->
+    <div>
+      <div style="margin-bottom:28px;" class="reveal">
+        <span class="badge badge-blue">🛰 Sistema de Design v1.0</span>
+      </div>
+
+      <div id="hero-title" style="margin-bottom:36px;">
+        <h1 style="font-size:clamp(3.5rem,9vw,7rem);font-weight:900;line-height:.88;letter-spacing:-.05em;">
+          <span class="tr-wrap"><span class="tr-inner delay-200 gt-space">SPACE</span></span><br>
+          <span class="tr-wrap"><span class="tr-inner delay-300 gt-space">ORBIT</span></span>
+        </h1>
+        <p style="font-size:clamp(.9rem,2vw,1.1rem);font-weight:300;letter-spacing:.4em;margin-top:14px;color:var(--muted);">
+          <span class="tr-wrap"><span class="tr-inner delay-500">DESIGN SYSTEM</span></span>
+        </p>
+      </div>
+
+      <p class="reveal delay-700" style="font-size:17px;line-height:1.75;color:var(--muted);max-width:460px;margin-bottom:48px;">
+        Componentes e padrões visuais para o universo do foguete Space Orbit — do átomo ao cosmos.
+      </p>
+
+      <div class="reveal delay-700" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px;">
+        <button class="btn btn-launch beam">🚀 Lançar Missão</button>
+        <button class="btn btn-outline">Ver Documentação</button>
+      </div>
+
+      <div class="reveal delay-700" style="display:flex;gap:10px;flex-wrap:wrap;">
+        <span class="badge badge-blue">Responsivo</span>
+        <span class="badge badge-purple">Acessível</span>
+        <span class="badge badge-gold">Animado</span>
+        <span class="badge badge-green">Moderno</span>
+      </div>
+    </div>
+
+    <!-- Rocket -->
+    <div class="reveal delay-300" style="display:flex;align-items:center;justify-content:center;">
+      <div style="position:relative;width:300px;height:300px;">
+        <div class="orbit-ring"><div class="orbit-dot"></div></div>
+        <img src="raw/foguetev1.jpeg" alt="Space Orbit Foguete"
+          style="width:100%;height:100%;object-fit:contain;position:relative;z-index:2;
+            animation:float 4.5s ease-in-out infinite;
+            filter:drop-shadow(0 0 40px rgba(79,195,247,.5)) drop-shadow(0 0 80px rgba(29,111,222,.25));" />
+        <div class="thruster-halo" style="z-index:1;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll hint -->
+  <div style="position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;" class="reveal delay-700">
+    <span style="font-size:9px;font-family:monospace;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">Explorar</span>
+    <iconify-icon icon="solar:arrow-down-bold-duotone" style="font-size:22px;color:var(--sky);animation:float 2s ease-in-out infinite;"></iconify-icon>
+  </div>
+</section>
+
+<!-- ── Marquee ── -->
+<div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:14px 0;background:rgba(13,27,53,.45);">
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Space Orbit Design System</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Componentes Galáticos</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Animações Cósmicas</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Design Estelar</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Space Orbit Design System</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Componentes Galáticos</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Animações Cósmicas</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+      <span style="font-size:10px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--muted);padding:0 36px;">Design Estelar</span>
+      <span style="color:var(--sky);padding:0 12px;">✦</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S1 — TIPOGRAFIA
+══════════════════════════════════════ -->
+<section id="s1" class="ds-section grid-bg">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">01 / Fundações</span>
+      <h2 class="ds-title gt-space">Tipografia</h2>
+    </div>
+
+    <!-- Scale -->
+    <div style="display:flex;flex-direction:column;gap:36px;">
+      <div style="display:grid;grid-template-columns:180px 1fr 110px;gap:24px;align-items:baseline;" class="reveal delay-100">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Display H1</span>
+        <h1 style="font-size:clamp(3rem,6vw,5rem);font-weight:900;letter-spacing:-.05em;line-height:1;" class="gt-space">Conquista Galáctica</h1>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-align:right;">5rem / 900</span>
+      </div>
+      <div style="height:1px;background:var(--border);"></div>
+      <div style="display:grid;grid-template-columns:180px 1fr 110px;gap:24px;align-items:baseline;" class="reveal delay-200">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Heading H2</span>
+        <h2 style="font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:-.03em;">Missão Espacial</h2>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-align:right;">3rem / 700</span>
+      </div>
+      <div style="height:1px;background:var(--border);"></div>
+      <div style="display:grid;grid-template-columns:180px 1fr 110px;gap:24px;align-items:baseline;" class="reveal delay-300">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Heading H3</span>
+        <h3 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:600;color:var(--sky);">Estudos de Caso</h3>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-align:right;">2rem / 600</span>
+      </div>
+      <div style="height:1px;background:var(--border);"></div>
+      <div style="display:grid;grid-template-columns:180px 1fr 110px;gap:24px;align-items:baseline;" class="reveal delay-500">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Body Large</span>
+        <p style="font-size:18px;line-height:1.75;color:var(--muted);">A interface do foguete combina design aeroespacial com experiência do utilizador moderna. Cada componente foi construído para resistir ao vácuo do espaço digital.</p>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-align:right;">1.125rem / 400</span>
+      </div>
+      <div style="height:1px;background:var(--border);"></div>
+      <div style="display:grid;grid-template-columns:180px 1fr 110px;gap:24px;align-items:baseline;" class="reveal delay-700">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Label / Mono</span>
+        <span style="font-size:11px;font-family:monospace;letter-spacing:4px;text-transform:uppercase;color:var(--cyan);">T-MINUS 00:00:10 · STATUS: GO FOR LAUNCH</span>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);text-align:right;">0.7rem / mono</span>
+      </div>
+    </div>
+
+    <!-- Font families -->
+    <div style="margin-top:72px;display:grid;grid-template-columns:1fr 1fr;gap:24px;" class="reveal delay-300">
+      <div class="space-card" style="padding:32px;">
+        <span style="font-size:9px;font-family:monospace;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:14px;">Família primária</span>
+        <h3 style="font-size:2.2rem;font-weight:800;margin-bottom:8px;">Inter</h3>
+        <p style="font-size:13px;color:var(--muted);font-family:monospace;">Aa Bb Cc Dd · 0123456789</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px;">Pesos: 300 · 400 · 500 · 600 · 700 · 800 · 900</p>
+      </div>
+      <div class="space-card" style="padding:32px;">
+        <span style="font-size:9px;font-family:monospace;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:14px;">Família monospace</span>
+        <h3 style="font-size:2.2rem;font-weight:800;margin-bottom:8px;font-family:monospace;color:var(--cyan);">Mono</h3>
+        <p style="font-size:13px;color:var(--muted);font-family:monospace;">T-MINUS 00:10:00 STATUS: GO</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px;font-family:monospace;">Labels · Telemetria · Códigos</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     S2 — CORES
+══════════════════════════════════════ -->
+<section id="s2" class="ds-section" style="background:rgba(13,27,53,.28);">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">02 / Fundações</span>
+      <h2 class="ds-title gt-nebula">Sistema de Cores</h2>
+    </div>
+
+    <!-- Palette -->
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:28px;" class="reveal">Paleta Espacial</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:20px;margin-bottom:60px;">
+      <div class="reveal"><div class="swatch-color" style="background:#030712;border:1px solid rgba(255,255,255,.08);"></div><span class="swatch-name">Space Void</span><span class="swatch-hex">--void · #030712</span></div>
+      <div class="reveal delay-100"><div class="swatch-color" style="background:#0d1b35;"></div><span class="swatch-name">Space Deep</span><span class="swatch-hex">--deep · #0d1b35</span></div>
+      <div class="reveal delay-200"><div class="swatch-color" style="background:#1d6fde;box-shadow:0 0 18px rgba(29,111,222,.4);"></div><span class="swatch-name">Rocket Blue</span><span class="swatch-hex">--blue · #1d6fde</span></div>
+      <div class="reveal delay-300"><div class="swatch-color" style="background:#4fc3f7;box-shadow:0 0 18px rgba(79,195,247,.5);"></div><span class="swatch-name">Atm. Blue</span><span class="swatch-hex">--sky · #4fc3f7</span></div>
+      <div class="reveal delay-500"><div class="swatch-color" style="background:#00e5ff;box-shadow:0 0 20px rgba(0,229,255,.6);"></div><span class="swatch-name">Thruster</span><span class="swatch-hex">--cyan · #00e5ff</span></div>
+      <div class="reveal delay-700"><div class="swatch-color" style="background:#6e3fa3;box-shadow:0 0 18px rgba(110,63,163,.5);"></div><span class="swatch-name">Nebula</span><span class="swatch-hex">--nebula · #6e3fa3</span></div>
+      <div class="reveal"><div class="swatch-color" style="background:#e53935;box-shadow:0 0 18px rgba(229,57,53,.5);"></div><span class="swatch-name">Rocket Red</span><span class="swatch-hex">--red · #e53935</span></div>
+      <div class="reveal delay-100"><div class="swatch-color" style="background:#ffd740;box-shadow:0 0 16px rgba(255,215,64,.4);"></div><span class="swatch-name">Star Gold</span><span class="swatch-hex">--gold · #ffd740</span></div>
+      <div class="reveal delay-200"><div class="swatch-color" style="background:#3caf65;box-shadow:0 0 16px rgba(60,175,101,.4);"></div><span class="swatch-name">Go Green</span><span class="swatch-hex">--green · #3caf65</span></div>
+      <div class="reveal delay-300"><div class="swatch-color" style="background:#f0f4ff;border:1px solid rgba(255,255,255,.12);"></div><span class="swatch-name">Rocket White</span><span class="swatch-hex">--white · #f0f4ff</span></div>
+    </div>
+
+    <!-- Gradients -->
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:28px;" class="reveal">Gradientes</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;">
+      <div class="reveal">
+        <div style="height:72px;border-radius:12px;background:linear-gradient(135deg,#1d6fde,#4fc3f7);box-shadow:0 4px 20px rgba(29,111,222,.3);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Rocket Thrust · btn-primary</span>
+      </div>
+      <div class="reveal delay-100">
+        <div style="height:72px;border-radius:12px;background:linear-gradient(135deg,#6e3fa3,#1d6fde);box-shadow:0 4px 20px rgba(110,63,163,.3);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Nebula Wave · display-text</span>
+      </div>
+      <div class="reveal delay-200">
+        <div style="height:72px;border-radius:12px;background:linear-gradient(135deg,#e53935,#ff6f00);box-shadow:0 4px 20px rgba(229,57,53,.3);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Launch Fire · btn-launch</span>
+      </div>
+      <div class="reveal delay-300">
+        <div style="height:72px;border-radius:12px;background:linear-gradient(135deg,#f0f4ff,#4fc3f7,#00e5ff);box-shadow:0 4px 20px rgba(0,229,255,.3);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Atmosphere · gradient-text</span>
+      </div>
+      <div class="reveal delay-500">
+        <div style="height:72px;border-radius:12px;background:radial-gradient(ellipse at 30% 40%,rgba(110,63,163,.9) 0%,rgba(29,111,222,.7) 50%,#0d1b35 100%);border:1px solid var(--border);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Deep Space · nebula-bg</span>
+      </div>
+      <div class="reveal delay-700">
+        <div style="height:72px;border-radius:12px;background:linear-gradient(45deg,#ffd740,#ff6f00,#e53935);box-shadow:0 4px 20px rgba(255,215,64,.3);"></div>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-top:10px;">Solar Flare · instafeed</span>
+      </div>
+    </div>
+
+    <!-- Borders & Shadows -->
+    <div class="ds-divider"></div>
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:24px;" class="reveal">Bordas &amp; Sombras</h3>
+    <div class="space-card reveal delay-200" style="overflow:hidden;">
+      <table class="spec-table">
+        <thead><tr><th>Token</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td><code>--border</code></td><td style="color:var(--muted);">rgba(79,195,247,.15)</td></tr>
+          <tr><td><code>border-hover</code></td><td style="color:var(--muted);">rgba(79,195,247,.4)</td></tr>
+          <tr><td><code>border-radius-card</code></td><td style="color:var(--muted);">16px</td></tr>
+          <tr><td><code>border-radius-btn</code></td><td style="color:var(--muted);">8px · 10px · 100px (pill)</td></tr>
+          <tr><td><code>shadow-blue</code></td><td style="color:var(--muted);">0 8px 28px rgba(29,111,222,.4)</td></tr>
+          <tr><td><code>shadow-cyan</code></td><td style="color:var(--muted);">0 0 40px rgba(0,229,255,.6)</td></tr>
+          <tr><td><code>shadow-red</code></td><td style="color:var(--muted);">0 0 40px rgba(229,57,53,.6)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     S3 — COMPONENTES
+══════════════════════════════════════ -->
+<section id="s3" class="ds-section grid-bg">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">03 / Elementos UI</span>
+      <h2 class="ds-title gt-space">Componentes</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;">
+
+      <!-- LEFT: Buttons + Badges + Progress -->
+      <div class="reveal">
+        <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:28px;padding-bottom:12px;border-bottom:1px solid var(--border);">Botões &amp; Ações</h3>
+        <div style="display:flex;flex-direction:column;gap:18px;margin-bottom:40px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <button class="btn btn-primary beam"><iconify-icon icon="solar:rocket-bold-duotone"></iconify-icon>Lançar Missão</button>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Primary</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <button class="btn btn-outline"><iconify-icon icon="solar:telescope-bold-duotone"></iconify-icon>Explorar</button>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Outline</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <button class="btn btn-ghost">Documentação</button>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Ghost</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <button class="btn btn-danger"><iconify-icon icon="solar:danger-bold-duotone"></iconify-icon>Abortar</button>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Danger</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <button class="btn btn-launch beam">🚀 T-MINUS ZERO</button>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Launch</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <a style="font-size:13px;color:var(--sky);text-decoration:none;border-bottom:1px solid var(--sky);padding-bottom:2px;" href="#">Link Orbital →</a>
+            <span style="font-size:10px;font-family:monospace;color:var(--muted);">Text Link</span>
+          </div>
+        </div>
+
+        <!-- Spec table buttons -->
+        <div class="space-card" style="overflow:hidden;margin-bottom:40px;">
+          <table class="spec-table">
+            <thead><tr><th>Classe</th><th>Padding</th><th>Radius</th><th>Fundo</th></tr></thead>
+            <tbody>
+              <tr><td><code>.btn-primary</code></td><td style="color:var(--muted);">13px 28px</td><td style="color:var(--muted);">8px</td><td style="color:var(--muted);">#1d6fde→#0d4fa0</td></tr>
+              <tr><td><code>.btn-outline</code></td><td style="color:var(--muted);">11px 26px</td><td style="color:var(--muted);">8px</td><td style="color:var(--muted);">transparent</td></tr>
+              <tr><td><code>.btn-ghost</code></td><td style="color:var(--muted);">12px 26px</td><td style="color:var(--muted);">8px</td><td style="color:var(--muted);">transparent</td></tr>
+              <tr><td><code>.btn-danger</code></td><td style="color:var(--muted);">13px 28px</td><td style="color:var(--muted);">8px</td><td style="color:var(--muted);">#e53935→#c62828</td></tr>
+              <tr><td><code>.btn-launch</code></td><td style="color:var(--muted);">16px 42px</td><td style="color:var(--muted);">100px</td><td style="color:var(--muted);">#e53935→#ff6f00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Badges -->
+        <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">Badges &amp; Status</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px;">
+          <span class="badge badge-blue">🛰 Em Órbita</span>
+          <span class="badge badge-green">✓ Go for Launch</span>
+          <span class="badge badge-red">⚠ Falha de Motor</span>
+          <span class="badge badge-purple">🌌 Nebulosa</span>
+          <span class="badge badge-gold">⭐ Estelar</span>
+        </div>
+
+        <!-- Progress -->
+        <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;">Progresso de Missão</h3>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-family:monospace;color:var(--muted);">Combustível</span>
+              <span style="font-size:11px;font-family:monospace;color:var(--cyan);">78%</span>
+            </div>
+            <div class="prog-track"><div class="prog-bar" style="width:78%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-family:monospace;color:var(--muted);">Altitude</span>
+              <span style="font-size:11px;font-family:monospace;color:var(--gold);">45%</span>
+            </div>
+            <div class="prog-track" style="background:rgba(255,215,64,.1);">
+              <div style="width:45%;height:100%;border-radius:100px;background:linear-gradient(90deg,#ff6f00,#ffd740);box-shadow:0 0 10px rgba(255,215,64,.5);"></div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;font-family:monospace;color:var(--muted);">Telemetria</span>
+              <span style="font-size:11px;font-family:monospace;color:#7ed49e;">100%</span>
+            </div>
+            <div class="prog-track" style="background:rgba(60,175,101,.1);">
+              <div style="width:100%;height:100%;border-radius:100px;background:linear-gradient(90deg,#1b5e20,#3caf65);box-shadow:0 0 10px rgba(60,175,101,.5);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Cards + Product card -->
+      <div class="reveal delay-200">
+        <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:28px;padding-bottom:12px;border-bottom:1px solid var(--border);">Cards Interativos</h3>
+
+        <!-- Flashlight card -->
+        <div class="space-card flashlight" style="padding:28px;margin-bottom:18px;cursor:crosshair;">
+          <div style="position:relative;z-index:3;">
+            <iconify-icon icon="solar:rocket-bold-duotone" style="font-size:38px;color:var(--sky);display:block;margin-bottom:14px;"></iconify-icon>
+            <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">Módulo Principal</h4>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Mova o cursor sobre este card para o efeito lanterna de propulsão.</p>
+            <span class="badge badge-blue">✦ Flashlight Effect</span>
+          </div>
+        </div>
+
+        <!-- Glow card -->
+        <div class="space-card" style="padding:28px;margin-bottom:18px;cursor:pointer;">
+          <iconify-icon icon="solar:star-bold-duotone" style="font-size:38px;color:var(--gold);display:block;margin-bottom:14px;"></iconify-icon>
+          <h4 style="font-size:17px;font-weight:700;margin-bottom:8px;">Módulo Estelar</h4>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">Hover para ver o brilho estelar de propulsão quântica.</p>
+          <span class="badge badge-gold">✦ Glow Effect</span>
+        </div>
+
+        <!-- Product card -->
+        <div class="space-card" style="overflow:hidden;cursor:pointer;">
+          <div style="background:linear-gradient(135deg,#0d1b35,#0f2040);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(79,195,247,.14) 0%,transparent 60%);"></div>
+            <img src="raw/foguetev1.jpeg" alt="Foguete Space Orbit"
+              style="height:110px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(79,195,247,.45));position:relative;z-index:2;animation:float 3.5s ease-in-out infinite;" />
+            <div style="position:absolute;bottom:0;left:0;right:0;height:45px;background:linear-gradient(to top,rgba(13,27,53,.9),transparent);"></div>
+            <span class="badge badge-blue" style="position:absolute;top:12px;left:12px;z-index:3;">Novo</span>
+          </div>
+          <div style="padding:20px;">
+            <p style="font-size:15px;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">Space Orbit Foguete</p>
+            <p style="font-size:11px;font-family:monospace;color:var(--muted);margin-bottom:4px;">Escala 1:110 · Colecionável</p>
+            <p style="font-size:22px;font-weight:800;color:var(--sky);margin-bottom:4px;">R$ 389,90</p>
+            <p style="font-size:11px;color:var(--muted);font-family:monospace;margin-bottom:16px;">3× R$ 129,97 sem juros</p>
+            <button class="btn btn-primary beam" style="width:100%;justify-content:center;border-radius:8px;">
+              <iconify-icon icon="solar:cart-bold-duotone"></iconify-icon>Comprar Agora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forms -->
+    <div class="ds-divider"></div>
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:32px;" class="reveal">Formulários de Missão</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;" class="reveal delay-200">
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div>
+          <label class="space-label">Callsign / Nome</label>
+          <input class="space-input" type="text" placeholder="Ex: Commander Vitor" />
+        </div>
+        <div>
+          <label class="space-label">E-mail de Missão</label>
+          <input class="space-input" type="email" placeholder="astronauta@spaceorbit.com" />
+        </div>
+        <div>
+          <label class="space-label">Mensagem Telemetria</label>
+          <textarea class="space-input" rows="4" placeholder="Insira coordenadas da missão..." style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div>
+          <label class="space-label">Destino Orbital</label>
+          <input class="space-input" type="text" placeholder="ISS - Estação Espacial" style="border-color:rgba(229,57,53,.45);box-shadow:0 0 0 3px rgba(229,57,53,.1);" />
+          <span style="font-size:11px;font-family:monospace;color:#f48a89;display:block;margin-top:6px;">⚠ Coordenadas fora do alcance</span>
+        </div>
+        <div>
+          <label class="space-label">Busca por Foguete</label>
+          <div style="display:flex;">
+            <input class="space-input" type="text" placeholder="Buscar modelos..." style="border-radius:10px 0 0 10px;" />
+            <button class="btn btn-primary" style="border-radius:0 10px 10px 0;padding:13px 18px;"><iconify-icon icon="solar:magnifier-bold-duotone"></iconify-icon></button>
+          </div>
+        </div>
+        <div>
+          <label class="space-label">Newsletter Orbital</label>
+          <div style="position:relative;">
+            <input class="space-input" type="email" placeholder="Seu e-mail..." style="padding-right:60px;" />
+            <button style="position:absolute;top:0;right:0;height:100%;width:52px;background:linear-gradient(135deg,#1d6fde,#0d4fa0);border:none;border-radius:0 10px 10px 0;color:#fff;cursor:pointer;font-size:18px;">→</button>
+          </div>
+        </div>
+        <div>
+          <label class="space-label">Tipo de Missão</label>
+          <div style="position:relative;">
+            <div class="space-input" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+              <span>Órbita Terrestre Baixa (LEO)</span>
+              <iconify-icon icon="solar:alt-arrow-down-bold-duotone" style="color:var(--muted);"></iconify-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="ds-divider"></div>
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:24px;" class="reveal">Alertas &amp; Notificações</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;" class="reveal delay-200">
+      <div style="padding:16px 20px;border-radius:10px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.3);color:#f48a89;font-size:13px;text-align:center;">⛔ .alert-danger — Falha no motor</div>
+      <div style="padding:16px 20px;border-radius:10px;background:rgba(60,175,101,.1);border:1px solid rgba(60,175,101,.3);color:#7ed49e;font-size:13px;text-align:center;">✓ .alert-success — Lançamento OK</div>
+      <div style="padding:16px 20px;border-radius:10px;background:rgba(255,215,64,.08);border:1px solid rgba(255,215,64,.3);color:var(--gold);font-size:13px;text-align:center;">⚡ .alert-warning — Verificar sistemas</div>
+      <div style="padding:16px 20px;border-radius:10px;background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.3);color:var(--sky);font-size:13px;text-align:center;">ℹ .alert-info — T-Minus ativo</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     S4 — ANIMAÇÕES
+══════════════════════════════════════ -->
+<section id="s4" class="ds-section" style="background:rgba(13,27,53,.28);">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">04 / Interação</span>
+      <h2 class="ds-title gt-nebula">Animações &amp; Movimento</h2>
+    </div>
+
+    <!-- Scroll reveal demo cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px;">
+      <div class="space-card reveal" style="padding:28px;text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:10px;">.reveal</span>
+        <h4 style="font-size:17px;font-weight:600;">Scroll Reveal</h4>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">opacity 0→1 · Y(24px→0)</p>
+      </div>
+      <div class="space-card reveal delay-200" style="padding:28px;text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:10px;">.reveal.delay-200</span>
+        <h4 style="font-size:17px;font-weight:600;">Staggered</h4>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Sequência com delay 200ms</p>
+      </div>
+      <div class="space-card reveal delay-500" style="padding:28px;text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:10px;">.reveal.delay-500</span>
+        <h4 style="font-size:17px;font-weight:600;">Long Delay</h4>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px;">Sequência com delay 500ms</p>
+      </div>
+    </div>
+
+    <!-- Keyframes table -->
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;" class="reveal">Catálogo de Keyframes</h3>
+    <div class="space-card reveal delay-200" style="overflow:hidden;margin-bottom:56px;">
+      <table class="spec-table">
+        <thead><tr><th>Nome</th><th>Duração / Easing</th><th>Descrição</th><th>Onde</th></tr></thead>
+        <tbody>
+          <tr><td><code>float</code></td><td style="color:var(--muted);">4.5s ease-in-out ∞</td><td style="color:var(--muted);">Y 0→-18px, rotação -3°</td><td><code>.rocket-hero-img</code></td></tr>
+          <tr><td><code>twinkle</code></td><td style="color:var(--muted);">3s ∞ var(--delay)</td><td style="color:var(--muted);">opacity .15→1, scale 1→1.6</td><td><code>.star</code></td></tr>
+          <tr><td><code>throb</code></td><td style="color:var(--muted);">2s ease-in-out ∞</td><td style="color:var(--muted);">box-shadow pulsando ciano</td><td><code>.thruster-halo</code></td></tr>
+          <tr><td><code>marquee</code></td><td style="color:var(--muted);">32s linear ∞</td><td style="color:var(--muted);">translateX 0→-100%</td><td><code>.marquee-track</code></td></tr>
+          <tr><td><code>spin</code></td><td style="color:var(--muted);">22s linear ∞</td><td style="color:var(--muted);">rotate 360° (anel orbital)</td><td><code>.orbit-ring</code></td></tr>
+          <tr><td><code>beat</code></td><td style="color:var(--muted);">.85s ease × 2</td><td style="color:var(--muted);">scale 1→1.35→1</td><td><code>.beat-once</code></td></tr>
+          <tr><td><code>shimmer (beam)</code></td><td style="color:var(--muted);">on hover .55s</td><td style="color:var(--muted);">Brilho sweep em botões</td><td><code>.beam::before</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Live demos -->
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:32px;" class="reveal">Demos ao Vivo</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:32px;" class="reveal delay-200">
+
+      <!-- Float -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">float</span>
+        <div style="width:80px;height:80px;background:rgba(13,27,53,.8);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+          <iconify-icon icon="solar:rocket-bold-duotone" style="font-size:36px;color:var(--sky);animation:float 3s ease-in-out infinite;"></iconify-icon>
+        </div>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:8px;font-family:monospace;">Y 0↔-18px, 4.5s</span>
+      </div>
+
+      <!-- Beat -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">.beat-once — clique</span>
+        <div id="beat-demo" style="width:80px;height:80px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.3);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="var ic=this.querySelector('iconify-icon');ic.classList.remove('beat-once');void ic.offsetWidth;ic.classList.add('beat-once');">
+          <iconify-icon icon="solar:heart-bold-duotone" style="font-size:36px;color:#f48a89;"></iconify-icon>
+        </div>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:8px;font-family:monospace;">scale 1→1.35, .85s×2</span>
+      </div>
+
+      <!-- Thruster -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">throb pulse</span>
+        <div style="width:80px;height:80px;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;animation:throb 2s ease-in-out infinite;">
+          <iconify-icon icon="solar:flame-bold-duotone" style="font-size:36px;color:var(--cyan);"></iconify-icon>
+        </div>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:8px;font-family:monospace;">box-shadow, 2s</span>
+      </div>
+
+      <!-- Notification slide -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">notification slide</span>
+        <div style="position:relative;width:160px;overflow:hidden;height:48px;border-radius:8px;">
+          <div id="notif-demo" style="position:absolute;top:0;right:0;padding:14px 16px;border-radius:8px;font-size:11px;white-space:nowrap;background:rgba(13,27,53,.95);border:1px solid var(--border);transform:translateX(100%);transition:transform .3s cubic-bezier(.16,.68,.43,.99);">
+            🚀 Adicionado!
+          </div>
+        </div>
+        <button onclick="var e=document.getElementById('notif-demo');e.style.transform=e.style.transform==='translateX(0px)'?'translateX(100%)':'translateX(0)';" class="btn btn-ghost" style="margin-top:8px;padding:5px 14px;font-size:10px;letter-spacing:1px;">Toggle</button>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:4px;font-family:monospace;">translateX(100%)↔0</span>
+      </div>
+
+      <!-- Blur-up -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">blur-up lazy load</span>
+        <div style="width:80px;height:80px;border-radius:12px;overflow:hidden;background:rgba(13,27,53,.8);border:1px solid var(--border);">
+          <img src="raw/foguetev1.jpeg" style="width:100%;height:100%;object-fit:cover;filter:blur(5px);transition:filter .4s;" onload="this.style.filter='none'" />
+        </div>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:8px;font-family:monospace;">blur(5px)→0, .4s</span>
+      </div>
+
+      <!-- Beam button demo -->
+      <div style="text-align:center;">
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);display:block;margin-bottom:14px;">beam hover</span>
+        <button class="btn btn-primary beam" style="padding:22px 18px;">Hover Me</button>
+        <span style="font-size:10px;color:var(--muted);display:block;margin-top:8px;font-family:monospace;">shimmer sweep, .55s</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     S5 — ÍCONES
+══════════════════════════════════════ -->
+<section id="s5" class="ds-section grid-bg">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">05 / Assets</span>
+      <h2 class="ds-title gt-space">Iconografia</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:28px;">
+      <div class="icon-cell reveal"><div class="icon-box"><iconify-icon icon="solar:rocket-bold-duotone" style="font-size:30px;color:var(--sky);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">rocket</span></div>
+      <div class="icon-cell reveal delay-100"><div class="icon-box"><iconify-icon icon="solar:star-bold-duotone" style="font-size:30px;color:var(--gold);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">star</span></div>
+      <div class="icon-cell reveal delay-200"><div class="icon-box"><iconify-icon icon="solar:planet-bold-duotone" style="font-size:30px;color:var(--nebula);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">planet</span></div>
+      <div class="icon-cell reveal delay-300"><div class="icon-box"><iconify-icon icon="solar:telescope-bold-duotone" style="font-size:30px;color:var(--cyan);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">telescope</span></div>
+      <div class="icon-cell reveal delay-500"><div class="icon-box"><iconify-icon icon="solar:atom-bold-duotone" style="font-size:30px;color:var(--sky);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">atom</span></div>
+      <div class="icon-cell reveal delay-700"><div class="icon-box"><iconify-icon icon="solar:satellite-bold-duotone" style="font-size:30px;color:var(--gold);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">satellite</span></div>
+      <div class="icon-cell reveal"><div class="icon-box"><iconify-icon icon="solar:flame-bold-duotone" style="font-size:30px;color:var(--red);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">flame</span></div>
+      <div class="icon-cell reveal delay-100"><div class="icon-box"><iconify-icon icon="solar:layers-minimalistic-bold-duotone" style="font-size:30px;color:var(--white);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">layers</span></div>
+      <div class="icon-cell reveal delay-200"><div class="icon-box"><iconify-icon icon="solar:check-circle-bold-duotone" style="font-size:30px;color:var(--green);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">check</span></div>
+      <div class="icon-cell reveal delay-300"><div class="icon-box"><iconify-icon icon="solar:danger-bold-duotone" style="font-size:30px;color:var(--gold);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">danger</span></div>
+      <div class="icon-cell reveal delay-500"><div class="icon-box"><iconify-icon icon="solar:cart-bold-duotone" style="font-size:30px;color:var(--sky);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">cart</span></div>
+      <div class="icon-cell reveal delay-700"><div class="icon-box"><iconify-icon icon="solar:heart-bold-duotone" style="font-size:30px;color:var(--red);"></iconify-icon></div><span style="font-size:10px;font-family:monospace;color:var(--muted);">heart</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     S6 — MOTION
+══════════════════════════════════════ -->
+<section id="s6" class="ds-section" style="background:rgba(13,27,53,.28);">
+  <div class="ds-wrap">
+    <div class="reveal">
+      <span class="ds-label">06 / Motion</span>
+      <h2 class="ds-title gt-fire">Transições &amp; Motion</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;" class="reveal delay-100">
+      <div class="space-card" style="overflow:hidden;">
+        <table class="spec-table">
+          <thead><tr><th>Classe / Token</th><th>Propriedade</th></tr></thead>
+          <tbody>
+            <tr><td><code>.transition-soft</code></td><td style="color:var(--muted);">all .3s ease</td></tr>
+            <tr><td><code>.transition-slow</code></td><td style="color:var(--muted);">all .6s ease</td></tr>
+            <tr><td><code>.beam::before</code></td><td style="color:var(--muted);">shimmer left → right, .55s</td></tr>
+            <tr><td><code>.flashlight::before</code></td><td style="color:var(--muted);">radial gradient segue cursor</td></tr>
+            <tr><td><code>.space-card:hover</code></td><td style="color:var(--muted);">translateY(-4px), border .4 opacity, 300ms</td></tr>
+            <tr><td><code>.btn:hover</code></td><td style="color:var(--muted);">shadow + translateY(-2px), 300ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="space-card" style="overflow:hidden;">
+        <table class="spec-table">
+          <thead><tr><th>Modal / Slide</th><th>Estado inicial → ativo</th></tr></thead>
+          <tbody>
+            <tr><td><code>.modal-right</code></td><td style="color:var(--muted);">right -100% → 0</td></tr>
+            <tr><td><code>.modal-left</code></td><td style="color:var(--muted);">left -100% → 0</td></tr>
+            <tr><td><code>.modal-top</code></td><td style="color:var(--muted);">top -100% → 0</td></tr>
+            <tr><td><code>.modal-bottom</code></td><td style="color:var(--muted);">bottom -100% → 0 · br-top 12px</td></tr>
+            <tr><td><code>easing</code></td><td style="color:var(--muted);">cubic-bezier(.16,.68,.43,.99)</td></tr>
+            <tr><td><code>duration</code></td><td style="color:var(--muted);">200ms–300ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Text reveal detail -->
+    <div class="ds-divider"></div>
+    <h3 style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:24px;" class="reveal">Text Reveal (Hero)</h3>
+    <div class="space-card reveal delay-200" style="overflow:hidden;">
+      <table class="spec-table">
+        <thead><tr><th>Elemento</th><th>CSS</th><th>Estado ativo</th></tr></thead>
+        <tbody>
+          <tr><td><code>.tr-wrap</code></td><td style="color:var(--muted);">overflow:hidden; display:inline-block;</td><td style="color:var(--muted);">—</td></tr>
+          <tr><td><code>.tr-inner</code></td><td style="color:var(--muted);">transform:translateY(110%); opacity:0;</td><td style="color:#7ed49e;">translateY(0); opacity:1</td></tr>
+          <tr><td>Trigger</td><td style="color:var(--muted);">setTimeout 400ms no DOMContentLoaded</td><td style="color:var(--muted);">.reveal-active em #hero-title</td></tr>
+          <tr><td>Easing</td><td colspan="2" style="color:var(--muted);">1.2s cubic-bezier(.16,1,.3,1) + opacity 1.2s ease</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── Footer ── -->
+<footer style="position:relative;z-index:5;background:rgba(3,7,18,.98);border-top:1px solid var(--border);padding:72px 40px 48px;text-align:center;">
+  <div style="max-width:1240px;margin:0 auto;">
+    <div style="position:relative;width:120px;height:120px;margin:0 auto 28px;">
+      <div class="orbit-ring" style="width:120px;height:120px;top:0;left:0;"><div class="orbit-dot" style="width:6px;height:6px;top:-3px;left:calc(50% - 3px);"></div></div>
+      <img src="raw/foguetev1.jpeg" alt="Space Orbit"
+        style="width:100%;height:100%;object-fit:contain;position:relative;z-index:2;animation:float 4s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(79,195,247,.45));" />
+    </div>
+    <h3 style="font-size:22px;font-weight:800;margin-bottom:8px;" class="gt-space">Space Orbit Design System</h3>
+    <p style="font-size:11px;font-family:monospace;color:var(--muted);letter-spacing:3px;margin-bottom:32px;">VERSÃO 1.0 · MISSÃO: DESIGN ESTELAR</p>
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:40px;">
+      <span class="badge badge-blue">🛰 Responsive</span>
+      <span class="badge badge-purple">♿ Accessible</span>
+      <span class="badge badge-gold">⭐ Animated</span>
+      <span class="badge badge-green">✓ Production Ready</span>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:24px;">
+      <p style="font-size:10px;color:var(--muted);font-family:monospace;letter-spacing:1.5px;">SPACE ORBIT DS · TEMA GALÁCTICO · CONSTRUÍDO COM TECNOLOGIAS WEB MODERNAS</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Nav
+  setTimeout(() => document.getElementById('nav').classList.add('in'), 80);
+
+  // Hero text reveal
+  setTimeout(() => {
+    const t = document.getElementById('hero-title');
+    if (t) t.classList.add('reveal-active');
+  }, 350);
+
+  // Star field
+  const sf = document.getElementById('sf');
+  for (let i = 0; i < 220; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.2 + 0.4;
+    s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${(Math.random()*4+1.5).toFixed(1)}s;--delay:${(Math.random()*5).toFixed(1)}s;`;
+    sf.appendChild(s);
+  }
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // Flashlight
+  document.querySelectorAll('.flashlight').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      card.style.setProperty('--my', `${e.clientY - r.top}px`);
+    });
+  });
+});
+</script>
+</body>
+</html>
